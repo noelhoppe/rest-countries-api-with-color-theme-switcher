@@ -96,7 +96,7 @@ export default function CountryCard({
   cca3
 }: CountryCardProps) {
   return (
-    <CountryCardWrapper key={cca3}>
+    <CountryCardWrapper>
       <CardLink/>
       <CountryCardFlag src={flag} alt={flagAlt} />
       <CountryCardContent>

@@ -6,6 +6,7 @@ import Header from "./components/Header";
 import Home from "./views/Home/Home";
 import { QueryClient } from "@tanstack/query-core";
 import { QueryClientProvider } from "@tanstack/react-query";
+import Detail from "./views/Detail/Detail";
 
 const queryClient = new QueryClient();
 
@@ -40,7 +41,8 @@ function ThemedApp() {
     <ThemeProvider theme={currentTheme}>
       <GlobalStyle />
       <Header />
-      <Home />
+      {/* <Home /> */}
+      <Detail />
     </ThemeProvider>
   );
 }
