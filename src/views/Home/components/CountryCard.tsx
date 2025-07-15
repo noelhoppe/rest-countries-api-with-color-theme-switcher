@@ -1,5 +1,6 @@
 import styled from "styled-components";
 import type { CountryCardProps } from "../../../types/home";
+import { Link } from "react-router";
 
 const CountryCardWrapper = styled.article`
   background-color: ${({ theme }) => theme.color.elements};
@@ -9,7 +10,7 @@ const CountryCardWrapper = styled.article`
   box-shadow: 0 4px 16px 0 ${({ theme }) => theme.color.background}, 0 1.5px 6px 0 rgba(0,0,0,0.07);
 `;
 
-const CardLink = styled.a`
+const CardLink = styled(Link)`
   position: absolute;
   top: 0;
   left: 0;
@@ -97,7 +98,7 @@ export default function CountryCard({
 }: CountryCardProps) {
   return (
     <CountryCardWrapper>
-      <CardLink/>
+      <CardLink to={`/countries/${cca3}`} />
       <CountryCardFlag src={flag} alt={flagAlt} />
       <CountryCardContent>
         <CountryCardTitle>{commonName}</CountryCardTitle>

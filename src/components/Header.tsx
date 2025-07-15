@@ -2,15 +2,12 @@ import { FaMoon, FaRegMoon } from "react-icons/fa";
 import { useColorTheme } from "../theme/ColorThemeProvider";
 import styled from "styled-components";
 
-export const HEIGHT_HEADER = 80;
 const HeaderContainer = styled.header`
   background-color: ${({ theme }) => theme.color.elements};
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 1rem 1.5rem;
-  height: ${HEIGHT_HEADER}px;
-  /* margin-bottom: 2rem; */
 
   h1 {
     margin: 0;
