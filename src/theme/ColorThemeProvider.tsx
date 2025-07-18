@@ -1,3 +1,4 @@
+// --- EXTERN IMPORTS ---
 import { createContext, useContext, useEffect, useState } from "react";
 
 type ColorTheme = "light" | "dark"

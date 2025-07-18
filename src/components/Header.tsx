@@ -1,6 +1,9 @@
+// --- EXTERN IMPORTS ---
 import { FaMoon, FaRegMoon } from "react-icons/fa";
-import { useColorTheme } from "../theme/ColorThemeProvider";
 import styled from "styled-components";
+
+// --- INTERN IMPORTS ---
+import { useColorTheme } from "../theme/ColorThemeProvider";
 
 const HeaderContainer = styled.header`
   background-color: ${({ theme }) => theme.color.elements};

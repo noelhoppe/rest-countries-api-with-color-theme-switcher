@@ -1,3 +1,4 @@
+// --- INTERN IMPORTS ---
 import type { APIResponse } from "./Detail.queries";
 import type { DetailCountryInformation } from "./Detail.types";
 

@@ -1,13 +1,14 @@
-import styled from "styled-components";
+// --- EXTERN IMPORTS ---
+import styled, { useTheme } from "styled-components";
 import { IoMdArrowBack } from "react-icons/io";
 import { Link, useParams } from "react-router";
+import { HashLoader } from "react-spinners";
 
-import { useQuery, useQueryClient } from "@tanstack/react-query";
-import fetchCountryByCode from "./Detail.queries";
-import type { CountryDetailViewProps, DetailCountryInformation } from "./Detail.types";
-import { mapToDetailCountryInformation } from "./utils";
-import { useEffect } from "react";
-import type { CountryCardProps } from "../Home/Home.types";
+// --- INTERN IMPORTS ---
+import useDetailCountryInformation from "./hooks/useDetailCountryInformation";
+import hslStringToHex from "../../utils/hslStringToHex";
+import { ReactSpinnerWrapper } from "../../components/ReactSpinnerWrapper";
+import { ReactRouterLink } from "../../components/ReactRouterLink";
 
 const MainWrapper = styled.main`
   place-content: start;
@@ -95,6 +96,7 @@ const DetailInformationKeyValueWrapper = styled.div`
 const BorderCountriesWraper = styled.div`
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 1rem;
   ul {
     display: flex;
@@ -113,66 +115,28 @@ const ReturnLink = styled(Link)`
   cursor: pointer;
 `;
 
-type UseDetailCountryInformationResult = {
-  isPending: boolean;
-  isError: boolean;
-  data: CountryDetailViewProps | undefined;
-  error: Error | null;
-};
-
-
-function useDetailCountryInformation(cca3: string): UseDetailCountryInformationResult {
-
-  const { isPending, isError, data, error } = useQuery({
-    queryKey: ["fetchCountryByCode", cca3],
-    queryFn: async(): Promise<DetailCountryInformation> => {
-      const country = await fetchCountryByCode(cca3);
-      return mapToDetailCountryInformation(country);
-    }
-  })
-
-  const queryClient = useQueryClient();
-  const cachedData: CountryCardProps[] | undefined = queryClient.getQueryData(["fetchCountriesAll"]);
-
-  useEffect(() => {
-    if (data && cachedData) {
-      queryClient.setQueryData(["combinedCountryInformation", cca3], {
-        ...data,
-        ...cachedData?.find((c) => c.cca3 === cca3),
-      });
-    }
-  }, [data, cachedData, cca3, queryClient]);
-  
-  const { data: combinedData } = useQuery({
-    queryKey: ["combinedCountryInformation", cca3],
-    queryFn: () =>
-      queryClient.getQueryData(["combinedCountryInformation", cca3]),
-    enabled: Boolean(data) && Boolean(cachedData),
-  });
-
-  return {
-    isPending,
-    isError,
-    data: combinedData,
-    error,
-  };
-}
-
-
+const BorderCountryItem = styled.li`
+  background-color: ${({ theme }) => theme.color.elements};
+  padding: 0.5rem 1rem;
+  border-radius: 10px;
+  position: relative;
+`;
 
 export default function Detail() {
-  // useParams returns an object with the URL paramters (e.g. { "cca3": "DEU" } )
   const { cca3 } = useParams();
-  if (cca3 === undefined) {
-    console.log("URL paramter cca3 not found.");
-  } else {
-    console.log(`URL paramter cca3 found: ${cca3}`);
-  }
+  const theme = useTheme();
 
-  const { isPending, isError, data, error } = useDetailCountryInformation(cca3!);
+  if (cca3 === undefined) {
+    throw new Error("URL parameter cca3 is required but not found.");
+  }
+  const { isPending, isError, data, error } = useDetailCountryInformation(cca3);
 
   if (isError) {
-    console.log("Error fetching country data:", error);
+    throw new Error(`
+      Error while fetching country details: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }
+    `);
   }
 
   return (
@@ -188,57 +152,70 @@ export default function Detail() {
           <span>Back</span>
         </ReturnLink>
       </div>
-      <MainWrapper>
-        <DetailImage
-          src={data?.flag}
-          alt={data?.flagAlt}
-        />
-        <InformationWrapper>
-          <DetailTitle>{data?.commonName}</DetailTitle>
-          <DetailInformationWrapper>
-            <dl>
-              <DetailInformationKeyValueWrapper>
-                <dt>Native Name</dt>
-                <dd>{data?.nativeName}</dd>
-              </DetailInformationKeyValueWrapper>
-              <DetailInformationKeyValueWrapper>
-                <dt>Region</dt>
-                <dd>{data?.region}</dd>
-              </DetailInformationKeyValueWrapper>
-              <DetailInformationKeyValueWrapper>
-                <dt>Sub Region</dt>
-                <dd>{data?.subregion}</dd>
-              </DetailInformationKeyValueWrapper>
-              <DetailInformationKeyValueWrapper>
-                <dt>Capital</dt>
-                <dd>{data?.capitals?.join(", ")}</dd>
-              </DetailInformationKeyValueWrapper>
-            </dl>
-            <dl>
-              <DetailInformationKeyValueWrapper>
-                <dt>Top Level Domain</dt>
-                <dd>{data?.tld?.join(", ")}</dd>
-              </DetailInformationKeyValueWrapper>
-              <DetailInformationKeyValueWrapper>
-                <dt>Currencies</dt>
-                <dd>{data?.currencies?.map((c) => `${c.symbol} ${c.name}`).join(", ")}</dd>
-              </DetailInformationKeyValueWrapper>
-              <DetailInformationKeyValueWrapper>
-                <dt>Languages</dt>
-                <dd>{data?.languages?.join(", ")}</dd>
-              </DetailInformationKeyValueWrapper>
-            </dl>
-          </DetailInformationWrapper>
-          <BorderCountriesWraper>
-            <span>Border Countries</span>
-            <ul>
-              {data?.borders?.map((border, idx) => (
-                <li key={idx}>{border}</li>
-              ))}
-            </ul>
-          </BorderCountriesWraper>
-        </InformationWrapper>
-      </MainWrapper>
+
+      {isPending && (
+        <ReactSpinnerWrapper>
+          <HashLoader size={100} color={hslStringToHex(theme.color.text)} />
+        </ReactSpinnerWrapper>
+      )}
+
+      {!isPending && !isError && (
+        <MainWrapper>
+          <DetailImage src={data?.flag} alt={data?.flagAlt} />
+          <InformationWrapper>
+            <DetailTitle>{data?.commonName}</DetailTitle>
+            <DetailInformationWrapper>
+              <dl>
+                <DetailInformationKeyValueWrapper>
+                  <dt>Native Name</dt>
+                  <dd>{data?.nativeName}</dd>
+                </DetailInformationKeyValueWrapper>
+                <DetailInformationKeyValueWrapper>
+                  <dt>Region</dt>
+                  <dd>{data?.region}</dd>
+                </DetailInformationKeyValueWrapper>
+                <DetailInformationKeyValueWrapper>
+                  <dt>Sub Region</dt>
+                  <dd>{data?.subregion}</dd>
+                </DetailInformationKeyValueWrapper>
+                <DetailInformationKeyValueWrapper>
+                  <dt>Capital</dt>
+                  <dd>{data?.capitals?.join(", ")}</dd>
+                </DetailInformationKeyValueWrapper>
+              </dl>
+              <dl>
+                <DetailInformationKeyValueWrapper>
+                  <dt>Top Level Domain</dt>
+                  <dd>{data?.tld?.join(", ")}</dd>
+                </DetailInformationKeyValueWrapper>
+                <DetailInformationKeyValueWrapper>
+                  <dt>Currencies</dt>
+                  <dd>
+                    {data?.currencies
+                      ?.map((c) => `${c.name} (${c.symbol})`)
+                      .join(", ")}
+                  </dd>
+                </DetailInformationKeyValueWrapper>
+                <DetailInformationKeyValueWrapper>
+                  <dt>Languages</dt>
+                  <dd>{data?.languages?.join(", ")}</dd>
+                </DetailInformationKeyValueWrapper>
+              </dl>
+            </DetailInformationWrapper>
+            <BorderCountriesWraper>
+              <span>Border Countries</span>
+              <ul>
+                {data?.borders?.map((border, idx) => (
+                  <BorderCountryItem key={idx}>
+                    <span>{border.commonName}</span>
+                    <ReactRouterLink to={`/countries/${border.cca3}`} />
+                  </BorderCountryItem>
+                ))}
+              </ul>
+            </BorderCountriesWraper>
+          </InformationWrapper>
+        </MainWrapper>
+      )}
     </>
   );
 }

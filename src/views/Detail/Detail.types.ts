@@ -1,3 +1,4 @@
+// --- INTERN IMPORTS ---
 import type { CountryCardProps } from "../Home/Home.types";
 
 export type DetailCountryInformation = {
@@ -9,4 +10,10 @@ export type DetailCountryInformation = {
   borders: string[]; // e.g. ["AUT", "BEL", "CZE", ...]; cca3 codes of bordering countries
 }
 
-export type CountryDetailViewProps = CountryCardProps & DetailCountryInformation;
+export type CountryDetailViewProps = CountryCardProps & 
+  Omit<DetailCountryInformation, "borders"> & {
+    borders: {
+      cca3: string;
+      commonName: string;
+    }[];
+  };

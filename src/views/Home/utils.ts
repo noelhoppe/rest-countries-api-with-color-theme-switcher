@@ -1,3 +1,4 @@
+// --- INTERN IMPORTS  ---
 import type { APIResponse } from "./Home.queries"
 import type { CountryCardProps } from "./Home.types"
 import type { Region } from "./Home.types"

@@ -1,13 +1,14 @@
-import { ColorThemeProvider, useColorTheme } from "./theme/ColorThemeProvider";
+// --- EXTERN IMPORTS ---
 import { ThemeProvider } from "styled-components";
-import { GlobalStyle } from "./theme/GlobalStyles";
-import { darkTheme, lightTheme } from "./theme/colorThemes";
-import Header from "./components/Header";
 import { QueryClient } from "@tanstack/query-core";
 import { QueryClientProvider } from "@tanstack/react-query";
-import Detail from "./views/Detail/Detail";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router";
-import Home from "./views/Home/Home";
+import { BrowserRouter } from "react-router";
+
+// --- INTERN IMPORTS ----
+import { ColorThemeProvider, useColorTheme } from "./theme/ColorThemeProvider";
+import { GlobalStyle } from "./theme/GlobalStyles";
+import { darkTheme, lightTheme } from "./theme/colorThemes";
+import AppRoutes from "./routes/AppRoutes";
 
 export const queryClient = new QueryClient();
 
@@ -34,6 +35,9 @@ export default function App() {
   );
 }
 
+
+
+
 function ThemedApp() {
   const { theme } = useColorTheme();
   const currentTheme = theme === "light" ? lightTheme : darkTheme;
@@ -41,15 +45,8 @@ function ThemedApp() {
   return (
     <ThemeProvider theme={currentTheme}>
       <GlobalStyle />
-      <Header />
       <BrowserRouter>
-        <Routes>
-          <Route path="/" element={<Navigate to={"/countries/"} replace={true} />} />
-          <Route path="/countries/">
-            <Route index element={<Home />} />
-            <Route path=":cca3" element={<Detail />} />
-          </Route>
-        </Routes>
+        <AppRoutes />
       </BrowserRouter>
     </ThemeProvider>
   );

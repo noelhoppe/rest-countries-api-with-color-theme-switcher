@@ -1,0 +1,59 @@
+// --- EXTERN IMPORTS ---
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+
+// --- INTERN IMPORTS ---
+import type { 
+  CountryDetailViewProps, 
+  DetailCountryInformation 
+} from "../Detail.types";
+import fetchCountryByCode from "../Detail.queries";
+import { mapToDetailCountryInformation } from "../utils";
+import type { CountryCardProps } from "../../Home/Home.types";
+import { useEffect } from "react";
+import useGeneralCountriesInformation from "../../Home/hooks/useGeneralCountriesInformation";
+
+
+export default function useDetailCountryInformation(cca3: string) {
+  const { isPending: isCountriesPending, isError: isCountriesError, data: countriesData, error: countriesError } = useGeneralCountriesInformation();
+
+  const { isPending, isError, data, error } = useQuery({
+    queryKey: ["fetchCountryByCode", cca3],
+    queryFn: async (): Promise<DetailCountryInformation> => {
+      const country = await fetchCountryByCode(cca3);
+      return mapToDetailCountryInformation(country);
+    }
+  });
+
+  const queryClient = useQueryClient();
+  const cachedData: CountryCardProps[] | undefined = countriesData;
+
+  useEffect(() => {
+    if (data && cachedData) {
+      queryClient.setQueryData(["combinedCountryInformation", cca3], {
+        ...data,
+        ...cachedData.find((c) => c.cca3 === cca3),
+        borders: data.borders.map((border) => {
+          const borderCountryCommonNamen = cachedData.find((c) => c.cca3 === border)?.commonName;
+          return {
+            cca3: border,
+            commonName: borderCountryCommonNamen || cca3,
+          }
+        })
+      });
+    }
+  }, [data, cachedData, cca3, queryClient]);
+
+  const { data: combinedData } = useQuery({
+    queryKey: ["combinedCountryInformation", cca3],
+    queryFn: (): CountryDetailViewProps | undefined =>
+      queryClient.getQueryData(["combinedCountryInformation", cca3]),
+    enabled: Boolean(data) && Boolean(cachedData),
+  });
+
+  return {
+    isPending: isPending || isCountriesPending,
+    isError: isError || isCountriesError,
+    data: combinedData,
+    error: error || countriesError,
+  };
+}

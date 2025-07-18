@@ -1,12 +1,15 @@
+// --- INTERN IMPORTS ---
 import { useState } from "react";
-import styled from "styled-components";
-import { useQuery } from "@tanstack/react-query";
+import styled, { useTheme } from "styled-components";
+import { HashLoader } from "react-spinners";
 
+// --- EXTERN IMPORTS ---
 import Filterbar from "./components/Filterbar";
-import { fetchCountriesAll } from "./Home.queries";
 import CountryCard from "./components/CountryCard";
-import type { CountryCardProps, Region } from "./Home.types";
-import { mapToCountryCardProps } from "./utils";
+import type { Region } from "./Home.types";
+import useGeneralCountriesInformation from "./hooks/useGeneralCountriesInformation";
+import hslStringToHex from "../../utils/hslStringToHex";
+import { ReactSpinnerWrapper } from "../../components/ReactSpinnerWrapper";
 
 const GridContainer = styled.main`
   display: grid;
@@ -23,18 +26,13 @@ export default function Home() {
   const [country, setCountry] = useState(""); // commonName of the Country
   const [region, setRegion] = useState<Region | undefined | null>(undefined);
 
-  const { data } = useQuery({
-    queryKey: ["fetchCountriesAll"],
-    queryFn: async(): Promise<CountryCardProps[]> => {
-      const countries = await fetchCountriesAll();
-      return mapToCountryCardProps(countries)
-    },
-  });
+  const { isPending, isError, data, error } = useGeneralCountriesInformation();
+  const theme = useTheme();
 
   const handleSearchByCountryChange = (val: string) => {
     setCountry(val);
   };
-  
+
   const handleFilterByRegionChange = (region: Region | null) => {
     setRegion(region);
   };
@@ -45,18 +43,41 @@ export default function Home() {
       c.commonName.toLowerCase().trim().includes(country.toLowerCase().trim())
     );
 
+  if (isError) {
+    throw new Error(`
+      Error while fetching counntries: ${
+        error instanceof Error ? error.message : "Unknown error"
+      }
+    `);
+  }
+
   return (
     <>
-      <Filterbar
-        onSearchByCountryChange={handleSearchByCountryChange}
-        onFilterByRegionChange={handleFilterByRegionChange}
-        region={region}
-      />
-      <GridContainer>
-        {filteredCountries?.map((country) => (
-          <CountryCard key={country.cca3} {...country} />
-        ))}
-      </GridContainer>
+      <div
+        style={{
+          marginTop: "2rem"
+        }}
+      >
+        <Filterbar
+          onSearchByCountryChange={handleSearchByCountryChange}
+          onFilterByRegionChange={handleFilterByRegionChange}
+          region={region}
+        />
+      </div>
+
+      {isPending && (
+        <ReactSpinnerWrapper>
+          <HashLoader size={100} color={hslStringToHex(theme.color.text)} />
+        </ReactSpinnerWrapper>
+      )}
+
+      {!isPending && !isError && (
+        <GridContainer>
+          {filteredCountries?.map((country) => (
+            <CountryCard key={country.cca3} {...country} />
+          ))}
+        </GridContainer>
+      )}
     </>
   );
 }

@@ -1,6 +1,9 @@
+// --- EXTERN IMPORTS ---
 import styled from "styled-components";
+import { ReactRouterLink } from "../../../components/ReactRouterLink";
+
+// --- INTERN IMPORTS ---
 import type { CountryCardProps } from "../Home.types";
-import { Link } from "react-router";
 
 const CountryCardWrapper = styled.article`
   background-color: ${({ theme }) => theme.color.elements};
@@ -8,15 +11,6 @@ const CountryCardWrapper = styled.article`
   border-radius: 10px;
   position: relative;
   box-shadow: 0 4px 16px 0 ${({ theme }) => theme.color.background}, 0 1.5px 6px 0 rgba(0,0,0,0.07);
-`;
-
-const CardLink = styled(Link)`
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  cursor: pointer;
 `;
 
 const CountryCardFlag = styled.img`
@@ -98,7 +92,7 @@ export default function CountryCard({
 }: CountryCardProps) {
   return (
     <CountryCardWrapper>
-      <CardLink to={`/countries/${cca3}`} />
+      <ReactRouterLink to={`/countries/${cca3}`} />
       <CountryCardFlag src={flag} alt={flagAlt} />
       <CountryCardContent>
         <CountryCardTitle>{commonName}</CountryCardTitle>
