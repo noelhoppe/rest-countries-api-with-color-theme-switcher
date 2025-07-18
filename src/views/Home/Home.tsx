@@ -1,10 +1,12 @@
 import { useState } from "react";
-import Filterbar from "./components/Filterbar";
 import styled from "styled-components";
-import type { CountryCardProps, Region } from "../../types/home";
 import { useQuery } from "@tanstack/react-query";
-import fetchGeneralCountryInformation from "../../services/home";
+
+import Filterbar from "./components/Filterbar";
+import { fetchCountriesAll } from "./Home.queries";
 import CountryCard from "./components/CountryCard";
+import type { CountryCardProps, Region } from "./Home.types";
+import { mapToCountryCardProps } from "./utils";
 
 const GridContainer = styled.main`
   display: grid;
@@ -17,39 +19,44 @@ const GridContainer = styled.main`
   }
 `;
 
-
 export default function Home() {
   const [country, setCountry] = useState(""); // commonName of the Country
   const [region, setRegion] = useState<Region | undefined | null>(undefined);
-  const { data } = useQuery({
-    queryKey: ["generalCountryInformation"],
-    queryFn: fetchGeneralCountryInformation
-  })
 
+  const { data } = useQuery({
+    queryKey: ["fetchCountriesAll"],
+    queryFn: async(): Promise<CountryCardProps[]> => {
+      const countries = await fetchCountriesAll();
+      return mapToCountryCardProps(countries)
+    },
+  });
 
   const handleSearchByCountryChange = (val: string) => {
     setCountry(val);
-  }
-
+  };
+  
   const handleFilterByRegionChange = (region: Region | null) => {
     setRegion(region);
-  }
+  };
 
   const filteredCountries = data
     ?.filter((c) => !region || c.region === region)
-    .filter((c) => c.commonName.toLowerCase().trim().includes(country.toLowerCase().trim()));
+    .filter((c) =>
+      c.commonName.toLowerCase().trim().includes(country.toLowerCase().trim())
+    );
 
   return (
     <>
-      <Filterbar 
+      <Filterbar
         onSearchByCountryChange={handleSearchByCountryChange}
         onFilterByRegionChange={handleFilterByRegionChange}
         region={region}
       />
       <GridContainer>
         {filteredCountries?.map((country) => (
-          <CountryCard key={country.cca3} {...country} />))}
+          <CountryCard key={country.cca3} {...country} />
+        ))}
       </GridContainer>
     </>
-  )
+  );
 }

@@ -2,7 +2,7 @@ import { useState } from "react";
 import { FaChevronDown, FaChevronUp, FaSearch } from "react-icons/fa";
 import { IoCloseOutline } from "react-icons/io5";
 import styled from "styled-components";
-import type { Region } from "../../../types/home";
+import type { Region } from "../Home.types";
 
 const RegionListWrapper = styled.ul`
   position: absolute;

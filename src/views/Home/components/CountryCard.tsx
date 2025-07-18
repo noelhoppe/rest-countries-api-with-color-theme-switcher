@@ -1,5 +1,5 @@
 import styled from "styled-components";
-import type { CountryCardProps } from "../../../types/home";
+import type { CountryCardProps } from "../Home.types";
 import { Link } from "react-router";
 
 const CountryCardWrapper = styled.article`

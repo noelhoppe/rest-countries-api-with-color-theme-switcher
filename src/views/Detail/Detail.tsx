@@ -1,11 +1,13 @@
 import styled from "styled-components";
 import { IoMdArrowBack } from "react-icons/io";
-import type { CountryDetailViewProps } from "../../types/detail";
 import { Link, useParams } from "react-router";
+
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import fetchDetailCountryInformation from "../../services/detail";
-import { queryClient } from "../../App";
-import { useDebugValue, useEffect } from "react";
+import fetchCountryByCode from "./Detail.queries";
+import type { CountryDetailViewProps, DetailCountryInformation } from "./Detail.types";
+import { mapToDetailCountryInformation } from "./utils";
+import { useEffect } from "react";
+import type { CountryCardProps } from "../Home/Home.types";
 
 const MainWrapper = styled.main`
   place-content: start;
@@ -111,40 +113,68 @@ const ReturnLink = styled(Link)`
   cursor: pointer;
 `;
 
+type UseDetailCountryInformationResult = {
+  isPending: boolean;
+  isError: boolean;
+  data: CountryDetailViewProps | undefined;
+  error: Error | null;
+};
+
+
+function useDetailCountryInformation(cca3: string): UseDetailCountryInformationResult {
+
+  const { isPending, isError, data, error } = useQuery({
+    queryKey: ["fetchCountryByCode", cca3],
+    queryFn: async(): Promise<DetailCountryInformation> => {
+      const country = await fetchCountryByCode(cca3);
+      return mapToDetailCountryInformation(country);
+    }
+  })
+
+  const queryClient = useQueryClient();
+  const cachedData: CountryCardProps[] | undefined = queryClient.getQueryData(["fetchCountriesAll"]);
+
+  useEffect(() => {
+    if (data && cachedData) {
+      queryClient.setQueryData(["combinedCountryInformation", cca3], {
+        ...data,
+        ...cachedData?.find((c) => c.cca3 === cca3),
+      });
+    }
+  }, [data, cachedData, cca3, queryClient]);
+  
+  const { data: combinedData } = useQuery({
+    queryKey: ["combinedCountryInformation", cca3],
+    queryFn: () =>
+      queryClient.getQueryData(["combinedCountryInformation", cca3]),
+    enabled: Boolean(data) && Boolean(cachedData),
+  });
+
+  return {
+    isPending,
+    isError,
+    data: combinedData,
+    error,
+  };
+}
+
+
+
 export default function Detail() {
   // useParams returns an object with the URL paramters (e.g. { "cca3": "DEU" } )
-  const { cca3 } = useParams(); 
-  if (!cca3) {
-    console.log("URL paramter cca3 not found.")
+  const { cca3 } = useParams();
+  if (cca3 === undefined) {
+    console.log("URL paramter cca3 not found.");
   } else {
-    console.log(`URL paramter cca3 found: ${cca3}`)
+    console.log(`URL paramter cca3 found: ${cca3}`);
   }
 
+  const { isPending, isError, data, error } = useDetailCountryInformation(cca3!);
 
-  // const { isPending, isError, data, error } = useQuery({
-  //   queryKey: ["detailCountryInformation", cca3],
-  //   queryFn: () => fetchDetailCountryInformation(cca3!),
-  // });
-  // const queryClient = useQueryClient();
-  // const cachedData = queryClient.getQueryData(["generalCountryInformation"]);
+  if (isError) {
+    console.log("Error fetching country data:", error);
+  }
 
-  // useEffect(() => {
-  //   if (data && cachedData) {
-  //     queryClient.setQueryData(["cmobinedCountryInformation", cca3], {
-  //       ...cachedData,
-  //       ...data,
-  //     });
-  //   }
-  // }, [data, cachedData, cca3, queryClient]);
-
-  // const { data: combinedData } = useQuery({
-  //   queryKey: ["combinedCountryInformation", cca3],
-  //   queryFn: () =>
-  //     queryClient.getQueryData(["combinedCountryInformation", cca3]),
-  //   enabled: !!data && !!cachedData,
-  // });
-
-  
   return (
     <>
       <div
@@ -160,52 +190,51 @@ export default function Detail() {
       </div>
       <MainWrapper>
         <DetailImage
-          src="https://flagcdn.com/de.svg"
-          alt="The flag of Germany is composed of three equal horizontal bands of black, red and gold."
+          src={data?.flag}
+          alt={data?.flagAlt}
         />
         <InformationWrapper>
-          <DetailTitle>Deutschland</DetailTitle>
+          <DetailTitle>{data?.commonName}</DetailTitle>
           <DetailInformationWrapper>
             <dl>
               <DetailInformationKeyValueWrapper>
                 <dt>Native Name</dt>
-                <dd>Belgie</dd>
+                <dd>{data?.nativeName}</dd>
               </DetailInformationKeyValueWrapper>
               <DetailInformationKeyValueWrapper>
                 <dt>Region</dt>
-                <dd>Europe</dd>
+                <dd>{data?.region}</dd>
               </DetailInformationKeyValueWrapper>
               <DetailInformationKeyValueWrapper>
                 <dt>Sub Region</dt>
-                <dd>Western Europa</dd>
+                <dd>{data?.subregion}</dd>
               </DetailInformationKeyValueWrapper>
               <DetailInformationKeyValueWrapper>
                 <dt>Capital</dt>
-                <dd>Brussels</dd>
+                <dd>{data?.capitals?.join(", ")}</dd>
               </DetailInformationKeyValueWrapper>
             </dl>
             <dl>
               <DetailInformationKeyValueWrapper>
                 <dt>Top Level Domain</dt>
-                <dd>.be</dd>
+                <dd>{data?.tld?.join(", ")}</dd>
               </DetailInformationKeyValueWrapper>
               <DetailInformationKeyValueWrapper>
                 <dt>Currencies</dt>
-                <dd>Euro</dd>
+                <dd>{data?.currencies?.map((c) => `${c.symbol} ${c.name}`).join(", ")}</dd>
               </DetailInformationKeyValueWrapper>
               <DetailInformationKeyValueWrapper>
                 <dt>Languages</dt>
-                <dd>Dutch, French, German</dd>
+                <dd>{data?.languages?.join(", ")}</dd>
               </DetailInformationKeyValueWrapper>
             </dl>
           </DetailInformationWrapper>
           <BorderCountriesWraper>
             <span>Border Countries</span>
             <ul>
-              <li>France</li>
-              <li>Germany</li>
-              <li>Netherlands</li>
-              <li>Luxembourg</li>
+              {data?.borders?.map((border, idx) => (
+                <li key={idx}>{border}</li>
+              ))}
             </ul>
           </BorderCountriesWraper>
         </InformationWrapper>
