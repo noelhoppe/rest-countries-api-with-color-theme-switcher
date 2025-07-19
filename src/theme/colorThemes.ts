@@ -1,3 +1,23 @@
+declare module "styled-components" {
+  export interface DefaultTheme {
+    color: {
+      text: string;
+      input: string;
+      background: string;
+      elements: string;
+    };
+    typography: {
+      fontFamily: string;
+      fontWeightLight: number;
+      fontWeightSemibold: number;
+      fontWeightBold: number;
+      fontSizeHome: string;
+      fontSizeDetail: string;
+    };
+  }
+}
+
+
 export const lightTheme = {
   color: {
     text: "hsl(200, 15%, 8%)",
