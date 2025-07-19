@@ -49,7 +49,7 @@ export default function Header() {
   const {theme, toggleTheme} = useColorTheme();
   return (
     <HeaderContainer>
-      <h1>Where in the word?</h1>
+      <h1>Where in the world?</h1>
       <ToggleColorThemenButton onClick={toggleTheme}>
         {theme === "light" ? <FaRegMoon /> : <FaMoon />}
         <span>Dark Mode</span>
