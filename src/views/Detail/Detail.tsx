@@ -203,15 +203,19 @@ export default function Detail() {
               </dl>
             </DetailInformationWrapper>
             <BorderCountriesWraper>
-              <span>Border Countries</span>
-              <ul>
-                {data?.borders?.map((border, idx) => (
-                  <BorderCountryItem key={idx}>
-                    <span>{border.commonName}</span>
-                    <ReactRouterLink to={`/countries/${border.cca3}`} />
-                  </BorderCountryItem>
-                ))}
-              </ul>
+              <span>Border Countries:</span>
+              {data?.borders?.length === 0 ? (
+                <span>No border countries</span>
+              ) : (
+                <ul>
+                  {data?.borders?.map((border, idx) => (
+                    <BorderCountryItem key={idx}>
+                      <span>{border.commonName}</span>
+                      <ReactRouterLink to={`/countries/${border.cca3}`} />
+                    </BorderCountryItem>
+                  ))}
+                </ul>
+              )} 
             </BorderCountriesWraper>
           </InformationWrapper>
         </MainWrapper>

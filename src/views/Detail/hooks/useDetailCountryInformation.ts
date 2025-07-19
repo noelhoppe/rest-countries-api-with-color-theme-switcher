@@ -25,15 +25,14 @@ export default function useDetailCountryInformation(cca3: string) {
   });
 
   const queryClient = useQueryClient();
-  const cachedData: CountryCardProps[] | undefined = countriesData;
 
   useEffect(() => {
-    if (data && cachedData) {
+    if (data && countriesData) {
       queryClient.setQueryData(["combinedCountryInformation", cca3], {
+        ...countriesData.find((c) => c.cca3 === cca3),
         ...data,
-        ...cachedData.find((c) => c.cca3 === cca3),
         borders: data.borders.map((border) => {
-          const borderCountryCommonNamen = cachedData.find((c) => c.cca3 === border)?.commonName;
+          const borderCountryCommonNamen = countriesData.find((c) => c.cca3 === border)?.commonName;
           return {
             cca3: border,
             commonName: borderCountryCommonNamen || cca3,
@@ -41,13 +40,13 @@ export default function useDetailCountryInformation(cca3: string) {
         })
       });
     }
-  }, [data, cachedData, cca3, queryClient]);
+  }, [data, countriesData, cca3, queryClient]);
 
   const { data: combinedData } = useQuery({
     queryKey: ["combinedCountryInformation", cca3],
     queryFn: (): CountryDetailViewProps | undefined =>
       queryClient.getQueryData(["combinedCountryInformation", cca3]),
-    enabled: Boolean(data) && Boolean(cachedData),
+    enabled: Boolean(data) && Boolean(countriesData),
   });
 
   return {
