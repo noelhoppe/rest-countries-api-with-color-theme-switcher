@@ -8,7 +8,6 @@ import type {
 } from "../Detail.types";
 import fetchCountryByCode from "../Detail.queries";
 import { mapToDetailCountryInformation } from "../utils";
-import type { CountryCardProps } from "../../Home/Home.types";
 import { useEffect } from "react";
 import useGeneralCountriesInformation from "../../Home/hooks/useGeneralCountriesInformation";
 

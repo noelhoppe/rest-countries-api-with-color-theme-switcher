@@ -4,7 +4,6 @@ import styled from "styled-components";
 
 // --- INTERN IMPORTS ---
 import { useColorTheme } from "../theme/ColorThemeProvider";
-import type { DefaultTheme } from "styled-components/dist/types";
 
 const HeaderContainer = styled.header`
   background-color: ${({ theme }) => theme.color.elements};
